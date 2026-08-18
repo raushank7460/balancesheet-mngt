@@ -21,23 +21,23 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { user } = useAuth();
 
   const navItems = [
-    { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-    { name: 'Chart of Accounts', path: '/accounts', icon: FolderKanban },
-    { name: 'Transactions', path: '/transactions', icon: ArrowRightLeft },
-    { name: 'Income', path: '/income', icon: TrendingUp },
-    { name: 'Expenses', path: '/expenses', icon: TrendingDown },
-    { name: 'Balance Sheet', path: '/balance-sheet', icon: Scale },
-    { name: 'Profit & Loss', path: '/profit-loss', icon: PieChart },
-    { name: 'Cash Flow', path: '/cash-flow', icon: Banknote },
-    { name: 'Account Ledger', path: '/ledger', icon: BookOpen },
-    { name: 'Reports', path: '/reports', icon: FileSpreadsheet },
+    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Chart of Accounts', path: '/dashboard/accounts', icon: FolderKanban },
+    { name: 'Transactions', path: '/dashboard/transactions', icon: ArrowRightLeft },
+    { name: 'Income', path: '/dashboard/income', icon: TrendingUp },
+    { name: 'Expenses', path: '/dashboard/expenses', icon: TrendingDown },
+    { name: 'Balance Sheet', path: '/dashboard/balance-sheet', icon: Scale },
+    { name: 'Profit & Loss', path: '/dashboard/profit-loss', icon: PieChart },
+    { name: 'Cash Flow', path: '/dashboard/cash-flow', icon: Banknote },
+    { name: 'Account Ledger', path: '/dashboard/ledger', icon: BookOpen },
+    { name: 'Reports', path: '/dashboard/reports', icon: FileSpreadsheet },
   ];
 
   if (user?.role === 'Admin') {
-    navItems.push({ name: 'User Management', path: '/users', icon: Users });
+    navItems.push({ name: 'User Management', path: '/dashboard/users', icon: Users });
   }
 
-  navItems.push({ name: 'Settings', path: '/settings', icon: Settings });
+  navItems.push({ name: 'Settings', path: '/dashboard/settings', icon: Settings });
 
   return (
     <>
@@ -81,7 +81,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 <NavLink
                   key={item.path}
                   to={item.path}
-                  end={item.path === '/'}
+                  end={item.path === '/dashboard'}
                   onClick={() => isOpen && toggleSidebar()}
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${

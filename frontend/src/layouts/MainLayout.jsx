@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import Toast from '../components/Toast';
+import Footer from '../components/Footer';
 
 const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -27,9 +28,7 @@ const MainLayout = () => {
           <Outlet />
         </main>
 
-        <footer className="py-4 px-6 border-t border-slate-900 text-center text-xs text-slate-600">
-          EquiBalance Accounting & Balance Sheet System &copy; {new Date().getFullYear()} — Enterprise Double-Entry Accounting
-        </footer>
+        <Footer />
       </div>
     </div>
   );

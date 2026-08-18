@@ -19,7 +19,7 @@ const Login = () => {
     try {
       await login(email, password);
       addToast('Welcome back! Successfully logged in.', 'success', 'Authenticated');
-      navigate('/');
+      navigate('/dashboard');
     } catch (error) {
       const msg = error.response?.data?.message || 'Failed to login. Please check credentials.';
       addToast(msg, 'error', 'Login Error');

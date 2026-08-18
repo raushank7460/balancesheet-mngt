@@ -134,14 +134,14 @@ const Navbar = ({ toggleSidebar }) => {
               </div>
 
               <Link
-                to="/profile"
+                to="/dashboard/profile"
                 onClick={() => setShowUserMenu(false)}
                 className="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
               >
                 <UserIcon className="w-4 h-4 text-slate-400" /> My Profile
               </Link>
               <Link
-                to="/settings"
+                to="/dashboard/settings"
                 onClick={() => setShowUserMenu(false)}
                 className="flex items-center gap-2.5 px-4 py-2 text-xs text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
               >

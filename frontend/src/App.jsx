@@ -23,6 +23,7 @@ import Users from './pages/Users';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
+import Home from './pages/Home';
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -41,7 +42,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;
@@ -52,7 +53,7 @@ const PublicOnlyRoute = ({ children }) => {
   const { user, loading } = useAuth();
 
   if (loading) return null;
-  if (user) return <Navigate to="/" replace />;
+  if (user) return <Navigate to="/dashboard" replace />;
 
   return children;
 };
@@ -60,6 +61,9 @@ const PublicOnlyRoute = ({ children }) => {
 const AppRoutes = () => {
   return (
     <Routes>
+      {/* Public Homepage */}
+      <Route path="/" element={<Home />} />
+
       {/* Public Authentication Routes */}
       <Route
         path="/login"
@@ -80,7 +84,7 @@ const AppRoutes = () => {
 
       {/* Main Authenticated Layout Routes */}
       <Route
-        path="/"
+        path="/dashboard"
         element={
           <ProtectedRoute>
             <MainLayout />
@@ -97,7 +101,7 @@ const AppRoutes = () => {
         <Route path="cash-flow" element={<CashFlow />} />
         <Route path="ledger" element={<Ledger />} />
         <Route path="reports" element={<Reports />} />
-        
+
         {/* Admin Only Route */}
         <Route
           path="users"
