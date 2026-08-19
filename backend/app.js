@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const mongoose = require('mongoose');
 const errorHandler = require('./middleware/errorHandler');
 
 // Route imports
@@ -17,8 +18,23 @@ dotenv.config();
 
 const app = express();
 
-// Body Parser & CORS
+// ── Serverless-safe DB connection (cached so Vercel doesn't reconnect every request) ──
+let isConnected = false;
+const connectDB = async () => {
+  if (isConnected && mongoose.connection.readyState === 1) return;
+  try {
+    await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/balancesheet');
+    isConnected = true;
+    console.log('MongoDB Connected');
+    // Seed on first connection
+    const { seedInitialData } = require('./utils/seedData');
+    await seedInitialData();
+  } catch (err) {
+    console.error('MongoDB connection error:', err.message);
+  }
+};
 
+// Body Parser & CORS
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
@@ -26,12 +42,19 @@ app.use(cors({
   credentials: true,
 }));
 
+// Middleware: ensure DB is connected before any request
+app.use(async (req, res, next) => {
+  await connectDB();
+  next();
+});
+
 // API Health Check
 app.get('/api/health', (req, res) => {
   res.json({
     success: true,
-    message: 'Balance Sheet Management System API is operational',
+    message: 'EquiBalance API is operational',
     timestamp: new Date(),
+    db: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
   });
 });
 
@@ -49,3 +72,4 @@ app.use('/api/notifications', notificationRoutes);
 app.use(errorHandler);
 
 module.exports = app;
+

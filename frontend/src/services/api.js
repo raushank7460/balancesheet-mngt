@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+// In production: VITE_API_URL = your backend Vercel URL (e.g. https://equibalance-api.vercel.app)
+// In development: falls back to /api (proxied by Vite to localhost:5000)
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_URL || '/api',
   headers: {
     'Content-Type': 'application/json',
   },

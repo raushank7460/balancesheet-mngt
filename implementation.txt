@@ -1,0 +1,173 @@
+# Implementation Plan - Balance Sheet Management System (MERN Stack)
+
+Build a full-featured, enterprise-grade **Balance Sheet Management System** with double-entry accounting engine, interactive financial reporting (Balance Sheet, Profit & Loss, Cash Flow, Ledger), Chart of Accounts, Income & Expense management, Admin User Management, JWT authentication, and PDF/Excel export capabilities.
+
+---
+
+## Technical Stack & Architecture
+
+### Backend Architecture (`backend/`)
+- **Runtime**: Node.js & Express.js
+- **Database**: MongoDB with Mongoose ORM
+- **Auth & Security**: JWT (JSON Web Tokens), `bcryptjs` password hashing, CORS, `dotenv`, role-based middleware (`Admin`, `Accountant`, `User`)
+- **Structure**:
+  - `config/db.js`: Mongoose connection with error handling & auto-seeding default accounts and superadmin.
+  - `models/`: User, Account, Transaction, Income, Expense, Notification schemas.
+  - `controllers/`: Modular controllers for Auth, Accounts, Transactions, Income, Expense, Reports, Users, Notifications.
+  - `middleware/`: `authMiddleware` (token validation), `roleMiddleware` (RBAC), `errorHandler` (centralized response formatter).
+  - `services/`: Accounting calculations (Double-Entry Engine, Financial Statements calculations, Ledger generator).
+  - `routes/`: Express REST API endpoints matching prompt requirements.
+
+### Frontend Architecture (`frontend/`)
+- **Framework & Tooling**: React.js (Vite), React Router DOM v6
+- **Styling & UI**: Tailwind CSS, Lucide Icons, modern dark/light balanced theme with glassmorphism & responsive layouts.
+- **Data Visualization**: Recharts (Income vs Expenses, Assets vs Liabilities, Monthly Revenue/Expense trend).
+- **Exporting**: `jspdf` + `jspdf-autotable` for PDF generation, `xlsx` for Excel export, native window print styling.
+- **State Management**: React Context (`AuthContext`, `NotificationContext`) + Axios instances with interceptors.
+
+---
+
+## User Review Required
+
+> [!IMPORTANT]
+> - **Default Database Credentials & Port**: Backend will listen on port `5000` (or `PORT` in `.env`) connecting to local MongoDB (`mongodb://127.0.0.1:27017/balancesheet`).
+> - **Auto-Seeding**: Upon first startup, default Chart of Accounts (Assets, Liabilities, Equity, Revenue, Expenses) and an initial Admin account (`admin@balancesheet.com` / `admin123`) will be seeded automatically for instant testing.
+
+---
+
+## Proposed Changes
+
+### Project Setup & Configuration
+
+#### [NEW] [`backend/package.json`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/backend/package.json)
+- Express, Mongoose, bcryptjs, jsonwebtoken, cors, dotenv, express-validator.
+
+#### [NEW] [`backend/.env`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/backend/.env)
+- Environment variables (`PORT=5000`, `MONGO_URI`, `JWT_SECRET`, `CLIENT_URL=http://localhost:5173`).
+
+#### [NEW] [`frontend/package.json`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/frontend/package.json)
+- React, Vite, React Router DOM, Axios, Tailwind CSS, Recharts, Lucide React, jsPDF, XLSX.
+
+---
+
+### Backend Components (`backend/`)
+
+#### [NEW] [`backend/config/db.js`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/backend/config/db.js)
+- MongoDB connection logic with retry & seed trigger.
+
+#### [NEW] [`backend/models/User.js`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/backend/models/User.js)
+- Schema: name, email, password, role (`Admin`, `Accountant`, `User`), status (`Active`, `Inactive`), createdAt.
+
+#### [NEW] [`backend/models/Account.js`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/backend/models/Account.js)
+- Schema: accountName, accountCode, accountType (`Asset`, `Liability`, `Equity`, `Revenue`, `Expense`), subCategory, description, openingBalance, balance, status (`Active`, `Inactive`), createdAt.
+
+#### [NEW] [`backend/models/Transaction.js`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/backend/models/Transaction.js)
+- Schema: transactionId, date, description, entries (`[{ account, debit, credit }]`), transactionType, reference, notes, createdBy, createdAt.
+
+#### [NEW] [`backend/models/Income.js`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/backend/models/Income.js)
+- Schema: incomeId, source, account, creditAccount, amount, date, paymentMethod, description, reference, createdBy, transactionRef.
+
+#### [NEW] [`backend/models/Expense.js`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/backend/models/Expense.js)
+- Schema: expenseId, category, account, debitAccount, amount, date, paymentMethod, description, notes, createdBy, transactionRef.
+
+#### [NEW] [`backend/models/Notification.js`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/backend/models/Notification.js)
+- Schema: title, message, type (`success`, `error`, `info`, `warning`), isRead, createdBy, createdAt.
+
+#### [NEW] [`backend/services/accountingService.js`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/backend/services/accountingService.js)
+- Core engine: Double-entry validation (`sum(debits) === sum(credits)`), balance calculation logic, financial statement generation algorithms (Balance Sheet equation verification `Assets = Liabilities + Equity`, Profit & Loss, Cash Flow statement breakdown, Ledger running balances).
+
+#### [NEW] [`backend/controllers/authController.js`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/backend/controllers/authController.js)
+- Login, Register, Profile details, Profile update, Change password.
+
+#### [NEW] [`backend/controllers/accountController.js`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/backend/controllers/accountController.js)
+- CRUD operations for Chart of Accounts with balance recalculations.
+
+#### [NEW] [`backend/controllers/transactionController.js`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/backend/controllers/transactionController.js)
+- Transaction creation with double-entry validation, balance updates, transaction history, updates & deletions with rollbacks.
+
+#### [NEW] [`backend/controllers/incomeController.js`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/backend/controllers/incomeController.js)
+- Income CRUD with automatic corresponding journal transaction generation.
+
+#### [NEW] [`backend/controllers/expenseController.js`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/backend/controllers/expenseController.js)
+- Expense CRUD with automatic corresponding journal transaction generation.
+
+#### [NEW] [`backend/controllers/reportController.js`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/backend/controllers/reportController.js)
+- Aggregated financial reports: Balance Sheet report, Profit & Loss report, Cash Flow statement report, Account Ledger statement, Dashboard metrics.
+
+#### [NEW] [`backend/controllers/userController.js`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/backend/controllers/userController.js)
+- User administration for Admin users (Role changes, status toggle, delete, create user).
+
+#### [NEW] [`backend/middleware/authMiddleware.js`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/backend/middleware/authMiddleware.js)
+- Protect routes with JWT verification & populate `req.user`.
+
+#### [NEW] [`backend/middleware/roleMiddleware.js`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/backend/middleware/roleMiddleware.js)
+- Role authorization barrier (`authorize('Admin', 'Accountant')`).
+
+#### [NEW] [`backend/utils/seedData.js`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/backend/utils/seedData.js)
+- Default Chart of Accounts pre-loading and sample initial accounts.
+
+#### [NEW] [`backend/server.js`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/backend/server.js)
+- Express app bootstrap, route registration, middleware wiring, listener launch.
+
+---
+
+### Frontend Components (`frontend/`)
+
+#### [NEW] [`frontend/src/App.jsx`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/frontend/src/App.jsx)
+- Router setup with public/private route guards, Notification & Auth providers.
+
+#### [NEW] [`frontend/src/layouts/MainLayout.jsx`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/frontend/src/layouts/MainLayout.jsx)
+- App layout with responsive Sidebar navigation, Top Header with notifications popup, profile menu, and status indicators.
+
+#### [NEW] [`frontend/src/pages/Dashboard.jsx`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/frontend/src/pages/Dashboard.jsx)
+- Financial overview cards, Recharts visualizations (Income vs Expense, Assets vs Liabilities, Monthly Trends), quick action widgets.
+
+#### [NEW] [`frontend/src/pages/Accounts.jsx`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/frontend/src/pages/Accounts.jsx)
+- Chart of Accounts tree & table list, grouped by Assets, Liabilities, Equity, Revenue, Expenses. Modal for adding/editing accounts.
+
+#### [NEW] [`frontend/src/pages/Transactions.jsx`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/frontend/src/pages/Transactions.jsx)
+- Transaction ledger table with search, account filter, date filter. Modal dialog for creating double-entry multi-line transactions with live debit/credit balance indicator.
+
+#### [NEW] [`frontend/src/pages/BalanceSheet.jsx`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/frontend/src/pages/BalanceSheet.jsx)
+- Comprehensive Balance Sheet statement showing Assets, Liabilities, Equity, Retained Earnings, Net Profit/Loss, and verification banner (`Assets === Liabilities + Equity`). Date range & year filters. Export to PDF & Excel.
+
+#### [NEW] [`frontend/src/pages/ProfitLoss.jsx`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/frontend/src/pages/ProfitLoss.jsx)
+- Profit & Loss Statement with Revenue breakdown, Expense breakdown, and Net Profit/Loss indicator. Filter & Export controls.
+
+#### [NEW] [`frontend/src/pages/CashFlow.jsx`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/frontend/src/pages/CashFlow.jsx)
+- Cash Flow Statement with Operating, Investing, and Financing activities. Opening cash vs closing cash summary.
+
+#### [NEW] [`frontend/src/pages/Ledger.jsx`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/frontend/src/pages/Ledger.jsx)
+- Detailed account ledger view with selected account dropdown, date filter, and running debit/credit/balance calculation.
+
+#### [NEW] [`frontend/src/pages/Income.jsx`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/frontend/src/pages/Income.jsx) & [`frontend/src/pages/Expenses.jsx`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/frontend/src/pages/Expenses.jsx)
+- Income & Expense record managers with status tags, search, modals for adding/editing receipts & entries.
+
+#### [NEW] [`frontend/src/pages/Reports.jsx`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/frontend/src/pages/Reports.jsx)
+- Central report hub for generating and exporting custom financial reports.
+
+#### [NEW] [`frontend/src/pages/Users.jsx`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/frontend/src/pages/Users.jsx)
+- Admin User Management page for managing user accounts, permissions, and roles.
+
+#### [NEW] [`frontend/src/pages/Profile.jsx`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/frontend/src/pages/Profile.jsx) & [`frontend/src/pages/Settings.jsx`](file:///c:/Users/raush/OneDrive/Desktop/balancesheet/frontend/src/pages/Settings.jsx)
+- User profile configuration, password change form, and app settings.
+
+---
+
+## Verification Plan
+
+### Automated & Integration Tests
+1. Test MongoDB Connection & Schema Initialization.
+2. Test User Registration, Password Hashing, JWT Login, and RBAC permissions.
+3. Test Double-Entry Transaction Engine:
+   - Verify creation fails if `Total Debit !== Total Credit`.
+   - Verify transaction updates account balances correctly (Debit increases Asset/Expense, Credit increases Liability/Equity/Revenue).
+4. Verify Balance Sheet logic:
+   - Ensure `Assets = Liabilities + Equity` holds true for all test accounting data.
+   - Verify Net Profit calculation rolls into Retained Earnings / Current Profit in Balance Sheet.
+
+### Manual & Visual Verification
+1. Start both backend server (`http://localhost:5000`) and frontend Vite dev server (`http://localhost:5173`).
+2. Log in as default Admin user (`admin@balancesheet.com` / `admin123`).
+3. Add accounts, create income & expense entries, verify real-time dashboard update and Recharts graphs.
+4. Export Balance Sheet, Profit & Loss, and Cash Flow statements to PDF and Excel.
