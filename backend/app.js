@@ -37,18 +37,55 @@ const connectDB = async () => {
 // Body Parser & CORS
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+].filter(Boolean);
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || '*',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, Postman, server-to-server)
+    if (!origin) return callback(null, true);
+    
+    // Check configured CLIENT_URL (supports comma-separated origins)
+    if (process.env.CLIENT_URL) {
+      const configured = process.env.CLIENT_URL.split(',').map(url => url.trim().replace(/\/$/, ''));
+      if (configured.includes(origin)) {
+        return callback(null, true);
+      }
+    }
+    
+    // Allow local development and any vercel preview / production domain
+    if (
+      allowedOrigins.includes(origin) ||
+      origin.startsWith('http://localhost:') ||
+      origin.startsWith('http://127.0.0.1:') ||
+      origin.endsWith('.vercel.app')
+    ) {
+      return callback(null, true);
+    }
+
+    // Default fallback: allow origin
+    return callback(null, true);
+  },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// Middleware: ensure DB is connected before any request
-app.use(async (req, res, next) => {
-  await connectDB();
-  next();
+// Root Route & API Health Check for Render
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'EquiBalance Backend API is running on Render',
+    healthCheck: '/api/health',
+    timestamp: new Date(),
+  });
 });
 
-// API Health Check
 app.get('/api/health', (req, res) => {
   res.json({
     success: true,
@@ -56,6 +93,12 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date(),
     db: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
   });
+});
+
+// Middleware: ensure DB is connected before any request
+app.use(async (req, res, next) => {
+  await connectDB();
+  next();
 });
 
 // API Routes
@@ -72,4 +115,5 @@ app.use('/api/notifications', notificationRoutes);
 app.use(errorHandler);
 
 module.exports = app;
+module.exports.connectDB = connectDB;
 

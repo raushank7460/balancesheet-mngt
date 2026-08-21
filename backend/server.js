@@ -2,7 +2,11 @@ const app = require('./app');
 
 const PORT = process.env.PORT || 5000;
 
-// Start server (DB connection handled inside app.js middleware)
+// Connect to database and start server
+if (app.connectDB) {
+  app.connectDB();
+}
+
 app.listen(PORT, () => {
   console.log(`=======================================================`);
   console.log(` EquiBalance Backend running on port ${PORT}`);
