@@ -1,14 +1,14 @@
 import axios from 'axios';
 
-// In production: VITE_API_URL = your backend Render URL (e.g. https://balancesheet-backend.onrender.com or https://balancesheet-backend.onrender.com/api)
-// In development: falls back to /api (proxied by Vite to localhost:5000)
-let rawBaseURL = import.meta.env.VITE_API_URL || '/api';
-if (rawBaseURL.endsWith('/')) {
-  rawBaseURL = rawBaseURL.slice(0, -1);
+// Sanitize and normalize API Base URL
+let rawBaseURL = (import.meta.env.VITE_API_URL || '/api').trim();
+rawBaseURL = rawBaseURL.replace(/\/+$/, ''); // remove trailing slashes
+if (rawBaseURL.endsWith('/api')) {
+  rawBaseURL = rawBaseURL.slice(0, -4);
 }
-const baseURL = (rawBaseURL.startsWith('http') && !rawBaseURL.endsWith('/api'))
-  ? `${rawBaseURL}/api`
-  : rawBaseURL;
+rawBaseURL = rawBaseURL.replace(/\/+$/, '');
+
+const baseURL = rawBaseURL.startsWith('http') ? `${rawBaseURL}/api` : '/api';
 
 const api = axios.create({
   baseURL,
