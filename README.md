@@ -1,5 +1,5 @@
 Build a complete **Balance Sheet Management System** using the **MERN Stack (MongoDB, Express.js, React.js, Node.js)**.
-
+#pink
 ## 1. Project Overview
 
 Create a professional web application where businesses can manage their financial accounts, income, expenses, assets, liabilities, and generate balance sheets.
