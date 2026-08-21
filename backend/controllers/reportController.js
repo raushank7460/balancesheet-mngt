@@ -7,19 +7,14 @@ const {
 } = require('../services/accountingService');
 const Transaction = require('../models/Transaction');
 const Account = require('../models/Account');
+const Income = require('../models/Income');
+const Expense = require('../models/Expense');
 
 // @desc    Get dashboard metrics & chart data
 // @route   GET /api/reports/dashboard
 // @access  Private
-let mp = new Map();
 const getDashboardMetrics = async (req, res, next) => {
   try {
-    if (mp.has('dashboard')) {
-      return res.send(mp.get('dashboard'));
-    }
-
-    await recalculateAccountBalances();
-
     const bs = await getBalanceSheetData();
     const pnl = await getProfitAndLossData();
     const transactionCount = await Transaction.countDocuments();
@@ -32,7 +27,7 @@ const getDashboardMetrics = async (req, res, next) => {
     const currentBalance = liquidAccounts.reduce((sum, a) => sum + a.balance, 0);
 
     // Compute monthly trend data from transactions
-    const transactions = await Transaction.find().sort({ date: 1 });
+    const transactions = await Transaction.find().sort({ date: 1 }).lean();
     const monthMap = {};
 
     transactions.forEach(txn => {
@@ -54,7 +49,8 @@ const getDashboardMetrics = async (req, res, next) => {
       ...m,
       net: m.income - m.expense,
     }));
-    let response = {
+
+    const response = {
       success: true,
       data: {
         summary: {
@@ -82,9 +78,7 @@ const getDashboardMetrics = async (req, res, next) => {
           monthlyTrends,
         },
       },
-    }
-
-    mp.set('dashboard', response);
+    };
 
     res.json(response);
   } catch (error) {
@@ -152,10 +146,30 @@ const getLedgerReport = async (req, res, next) => {
   }
 };
 
+// @desc    Purge all transactions & income/expense & reset account balances to 0
+// @route   POST /api/reports/reset-data
+// @access  Private (Admin)
+const resetData = async (req, res, next) => {
+  try {
+    await Transaction.deleteMany({});
+    await Income.deleteMany({});
+    await Expense.deleteMany({});
+    await Account.updateMany({}, { $set: { openingBalance: 0, balance: 0 } });
+
+    res.json({
+      success: true,
+      message: 'All transactions, income, expense records cleared and account balances reset to 0.',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getDashboardMetrics,
   getBalanceSheetReport,
   getProfitLossReport,
   getCashFlowReport,
   getLedgerReport,
+  resetData,
 };

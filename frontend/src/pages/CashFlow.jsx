@@ -3,9 +3,11 @@ import api from '../services/api';
 import { useNotification } from '../context/NotificationContext';
 import { exportToPDF, exportToExcel } from '../utils/exportUtils';
 import { formatCurrency } from '../utils/formatters';
+import { useCurrency } from '../context/CurrencyContext';
 import { Banknote, Printer, FileText, Download, ArrowUpRight, ArrowDownRight, RefreshCw } from 'lucide-react';
 
 const CashFlow = () => {
+  const { currencySymbol, formatCurrency: formatCurr } = useCurrency();
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState('');
@@ -34,34 +36,34 @@ const CashFlow = () => {
 
   const handleExportPDF = () => {
     if (!report) return;
-    const headers = ['Activity / Metric', 'Inflow ($)', 'Outflow ($)', 'Net Cash Flow ($)'];
+    const headers = ['Activity / Metric', `Inflow (${currencySymbol})`, `Outflow (${currencySymbol})`, `Net Cash Flow (${currencySymbol})`];
     const rows = [
-      ['Opening Cash Balance', '', '', formatCurrency(report.openingCashBalance)],
+      ['Opening Cash Balance', '', '', formatCurr(report.openingCashBalance)],
       [
         'Operating Activities',
-        formatCurrency(report.operatingActivities.inflow),
-        formatCurrency(report.operatingActivities.outflow),
-        formatCurrency(report.operatingActivities.net),
+        formatCurr(report.operatingActivities.inflow),
+        formatCurr(report.operatingActivities.outflow),
+        formatCurr(report.operatingActivities.net),
       ],
       [
         'Investing Activities',
-        formatCurrency(report.investingActivities.inflow),
-        formatCurrency(report.investingActivities.outflow),
-        formatCurrency(report.investingActivities.net),
+        formatCurr(report.investingActivities.inflow),
+        formatCurr(report.investingActivities.outflow),
+        formatCurr(report.investingActivities.net),
       ],
       [
         'Financing Activities',
-        formatCurrency(report.financingActivities.inflow),
-        formatCurrency(report.financingActivities.outflow),
-        formatCurrency(report.financingActivities.net),
+        formatCurr(report.financingActivities.inflow),
+        formatCurr(report.financingActivities.outflow),
+        formatCurr(report.financingActivities.net),
       ],
       [
         'TOTAL NET CASH FLOW',
-        formatCurrency(report.totalCashInflow),
-        formatCurrency(report.totalCashOutflow),
-        formatCurrency(report.netCashFlow),
+        formatCurr(report.totalCashInflow),
+        formatCurr(report.totalCashOutflow),
+        formatCurr(report.netCashFlow),
       ],
-      ['Closing Cash Balance', '', '', formatCurrency(report.closingCashBalance)],
+      ['Closing Cash Balance', '', '', formatCurr(report.closingCashBalance)],
     ];
 
     exportToPDF('Cash Flow Statement', headers, rows, 'Cash_Flow_Statement');
@@ -196,9 +198,9 @@ const CashFlow = () => {
                 <thead>
                   <tr className="bg-slate-800/60 text-slate-400 font-semibold border-b border-slate-800">
                     <th className="py-3 px-4">Activity Category</th>
-                    <th className="py-3 px-4 text-right">Inflow ($)</th>
-                    <th className="py-3 px-4 text-right">Outflow ($)</th>
-                    <th className="py-3 px-4 text-right">Net Cash Flow ($)</th>
+                    <th className="py-3 px-4 text-right">Inflow ({currencySymbol})</th>
+                    <th className="py-3 px-4 text-right">Outflow ({currencySymbol})</th>
+                    <th className="py-3 px-4 text-right">Net Cash Flow ({currencySymbol})</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60 text-slate-200">

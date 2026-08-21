@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { CurrencyProvider } from './context/CurrencyContext';
 
 // Layout
 import MainLayout from './layouts/MainLayout';
@@ -124,9 +125,11 @@ function App() {
   return (
     <AuthProvider>
       <NotificationProvider>
-        <Router>
-          <AppRoutes />
-        </Router>
+        <CurrencyProvider>
+          <Router>
+            <AppRoutes />
+          </Router>
+        </CurrencyProvider>
       </NotificationProvider>
     </AuthProvider>
   );

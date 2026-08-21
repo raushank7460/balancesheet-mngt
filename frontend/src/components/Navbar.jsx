@@ -2,12 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
-import { Menu, Bell, User as UserIcon, LogOut, Settings as SettingsIcon, CheckCheck } from 'lucide-react';
+import { useCurrency } from '../context/CurrencyContext';
+import { Menu, Bell, User as UserIcon, LogOut, Settings as SettingsIcon, CheckCheck, Coins } from 'lucide-react';
 import { formatDate } from '../utils/formatters';
 
 const Navbar = ({ toggleSidebar }) => {
   const { user, logout } = useAuth();
   const { notifications, unreadCount, fetchNotifications, markAllRead } = useNotification();
+  const { currency, setCurrency, currencies } = useCurrency();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const navigate = useNavigate();
@@ -50,8 +52,25 @@ const Navbar = ({ toggleSidebar }) => {
         >
           <Menu className="w-5 h-5" />
         </button>
-        <div className="hidden sm:block text-xs text-slate-400 font-medium">
-          Financial Year: <span className="text-indigo-400 font-semibold">2026-2027</span>
+        <div className="hidden sm:flex items-center gap-3 text-xs text-slate-400 font-medium">
+          <div>
+            FY: <span className="text-indigo-400 font-semibold">2026-2027</span>
+          </div>
+          <span className="text-slate-700">|</span>
+          <div className="flex items-center gap-1.5 bg-slate-800/80 px-2.5 py-1 rounded-xl border border-slate-700/60">
+            <Coins className="w-3.5 h-3.5 text-amber-400" />
+            <select
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              className="bg-transparent text-slate-200 font-semibold text-xs focus:outline-none cursor-pointer"
+            >
+              <option value="INR" className="bg-slate-900 text-white">INR (₹)</option>
+              <option value="USD" className="bg-slate-900 text-white">USD ($)</option>
+              <option value="EUR" className="bg-slate-900 text-white">EUR (€)</option>
+              <option value="GBP" className="bg-slate-900 text-white">GBP (£)</option>
+              <option value="AED" className="bg-slate-900 text-white">AED</option>
+            </select>
+          </div>
         </div>
       </div>
 

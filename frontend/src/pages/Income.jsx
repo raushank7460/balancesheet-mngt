@@ -5,8 +5,10 @@ import { useNotification } from '../context/NotificationContext';
 import Modal from '../components/Modal';
 import { Plus, Search, Filter, Trash2, Edit3, TrendingUp } from 'lucide-react';
 import { formatCurrency, formatDate, formatDateForInput } from '../utils/formatters';
+import { useCurrency } from '../context/CurrencyContext';
 
 const Income = () => {
+  const { currencySymbol, formatCurrency: formatCurr } = useCurrency();
   const [incomeRecords, setIncomeRecords] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -190,7 +192,7 @@ const Income = () => {
                 <th className="py-3.5 px-4">Description</th>
                 <th className="py-3.5 px-4">Payment Method</th>
                 <th className="py-3.5 px-4">Reference</th>
-                <th className="py-3.5 px-4 text-right">Amount ($)</th>
+                <th className="py-3.5 px-4 text-right">Amount ({currencySymbol})</th>
                 {hasRole('Admin', 'Accountant') && <th className="py-3.5 px-4 text-center">Actions</th>}
               </tr>
             </thead>
@@ -221,7 +223,7 @@ const Income = () => {
                     </td>
                     <td className="py-3 px-4 font-mono text-slate-400">{inc.reference || '-'}</td>
                     <td className="py-3 px-4 text-right font-mono font-bold text-emerald-400">
-                      {formatCurrency(inc.amount)}
+                      {formatCurr(inc.amount)}
                     </td>
 
                     {hasRole('Admin', 'Accountant') && (
@@ -274,7 +276,7 @@ const Income = () => {
             </div>
 
             <div>
-              <label className="block text-slate-300 font-semibold mb-1">Amount ($) *</label>
+              <label className="block text-slate-300 font-semibold mb-1">Amount ({currencySymbol}) *</label>
               <input
                 type="number"
                 step="0.01"

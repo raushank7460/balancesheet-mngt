@@ -5,8 +5,8 @@ const Transaction = require('../models/Transaction');
  * Recalculate balances for all accounts based on opening balances + transaction entries
  */
 const recalculateAccountBalances = async () => {
-  const accounts = await Account.find();
-  const transactions = await Transaction.find();
+  const accounts = await Account.find().lean();
+  const transactions = await Transaction.find().lean();
 
   // Create a map to hold net debit and net credit for each account
   const accountTotals = {};
@@ -15,17 +15,21 @@ const recalculateAccountBalances = async () => {
   });
 
   transactions.forEach(txn => {
-    txn.entries.forEach(entry => {
-      const accId = entry.account.toString();
-      if (accountTotals[accId]) {
-        accountTotals[accId].debit += entry.debit || 0;
-        accountTotals[accId].credit += entry.credit || 0;
-      }
-    });
+    if (txn.entries && Array.isArray(txn.entries)) {
+      txn.entries.forEach(entry => {
+        if (entry.account) {
+          const accId = entry.account.toString();
+          if (accountTotals[accId]) {
+            accountTotals[accId].debit += entry.debit || 0;
+            accountTotals[accId].credit += entry.credit || 0;
+          }
+        }
+      });
+    }
   });
 
-  // Update balances in database
-  for (const acc of accounts) {
+  // Prepare bulk operations for fast single-roundtrip update
+  const bulkOps = accounts.map(acc => {
     const accId = acc._id.toString();
     const totals = accountTotals[accId] || { debit: 0, credit: 0 };
     let newBalance = acc.openingBalance || 0;
@@ -37,8 +41,17 @@ const recalculateAccountBalances = async () => {
       newBalance += (totals.credit - totals.debit);
     }
 
-    acc.balance = Math.round(newBalance * 100) / 100;
-    await acc.save();
+    const rounded = Math.round(newBalance * 100) / 100;
+    return {
+      updateOne: {
+        filter: { _id: acc._id },
+        update: { $set: { balance: rounded } },
+      },
+    };
+  });
+
+  if (bulkOps.length > 0) {
+    await Account.bulkWrite(bulkOps);
   }
 };
 
@@ -59,7 +72,7 @@ const validateDoubleEntry = (entries) => {
   if (Math.abs(roundedDebit - roundedCredit) > 0.01) {
     return {
       valid: false,
-      message: `Imbalanced Transaction! Total Debit ($${roundedDebit}) does not equal Total Credit ($${roundedCredit})`,
+      message: `Imbalanced Transaction! Total Debit (${roundedDebit}) does not equal Total Credit (${roundedCredit})`,
     };
   }
 
@@ -74,8 +87,6 @@ const validateDoubleEntry = (entries) => {
  * Generate Profit & Loss Data
  */
 const getProfitAndLossData = async (startDate, endDate) => {
-  await recalculateAccountBalances();
-
   const query = {};
   if (startDate || endDate) {
     query.createdAt = {};
@@ -212,7 +223,6 @@ const getBalanceSheetData = async (startDate, endDate) => {
  * Generate Cash Flow Statement Data
  */
 const getCashFlowData = async (startDate, endDate) => {
-  await recalculateAccountBalances();
   const pnl = await getProfitAndLossData(startDate, endDate);
 
   const cashAccounts = await Account.find({

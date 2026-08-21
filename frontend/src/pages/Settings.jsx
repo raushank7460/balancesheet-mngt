@@ -1,18 +1,36 @@
 import React, { useState } from 'react';
 import { useNotification } from '../context/NotificationContext';
-import { Settings as SettingsIcon, Sliders, Database, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { useCurrency } from '../context/CurrencyContext';
+import api from '../services/api';
+import { Settings as SettingsIcon, Sliders, ShieldCheck, Trash2, AlertTriangle } from 'lucide-react';
 
 const Settings = () => {
-  const [currency, setCurrency] = useState('USD');
+  const { currency, setCurrency } = useCurrency();
   const [financialYear, setFinancialYear] = useState('2026-2027');
   const [strictDoubleEntry, setStrictDoubleEntry] = useState(true);
   const [autoRecalculate, setAutoRecalculate] = useState(true);
+  const [resetting, setResetting] = useState(false);
 
   const { addToast } = useNotification();
 
   const handleSave = (e) => {
     e.preventDefault();
-    addToast('System preferences saved successfully!', 'success', 'Settings Saved');
+    addToast(`System preferences saved! Active currency: ${currency}`, 'success', 'Settings Saved');
+  };
+
+  const handleResetData = async () => {
+    if (!window.confirm('Are you sure you want to delete all transactions, income, and expense records? This will clean all mock/seed data and start fresh.')) {
+      return;
+    }
+    setResetting(true);
+    try {
+      await api.post('/reports/reset-data');
+      addToast('All mock data cleared successfully! Your accounting slate is 100% clean.', 'success', 'Data Cleared');
+    } catch (error) {
+      addToast(error.response?.data?.message || 'Failed to clear data', 'error', 'Error');
+    } finally {
+      setResetting(false);
+    }
   };
 
   return (
@@ -39,10 +57,11 @@ const Settings = () => {
                 onChange={(e) => setCurrency(e.target.value)}
                 className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-100"
               >
+                <option value="INR">INR (₹) - Indian Rupee</option>
                 <option value="USD">USD ($) - US Dollar</option>
                 <option value="EUR">EUR (€) - Euro</option>
                 <option value="GBP">GBP (£) - British Pound</option>
-                <option value="INR">INR (₹) - Indian Rupee</option>
+                <option value="AED">AED (AED) - UAE Dirham</option>
               </select>
             </div>
 
@@ -93,6 +112,24 @@ const Settings = () => {
               </div>
             </label>
           </div>
+        </div>
+
+        {/* Clean Mock / Seed Data Section */}
+        <div className="bg-rose-950/20 border border-rose-500/30 rounded-3xl p-6 shadow-xl space-y-4">
+          <h3 className="text-sm font-semibold text-rose-300 flex items-center gap-2 pb-3 border-b border-rose-500/20">
+            <AlertTriangle className="w-4 h-4 text-rose-400" /> Clean Slate / Remove Mock Data
+          </h3>
+          <p className="text-slate-400 text-[11px]">
+            Clear all dummy transactions, mock income, and mock expenses so you can manage your own financial entries from scratch.
+          </p>
+          <button
+            type="button"
+            disabled={resetting}
+            onClick={handleResetData}
+            className="px-4 py-2 rounded-xl bg-rose-600/30 hover:bg-rose-600/50 text-rose-200 border border-rose-500/40 text-xs font-semibold flex items-center gap-2 transition-all disabled:opacity-50"
+          >
+            <Trash2 className="w-3.5 h-3.5" /> {resetting ? 'Clearing Data...' : 'Clear All Mock Transactions & Reset Balances'}
+          </button>
         </div>
 
         <div className="flex justify-end">

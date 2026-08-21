@@ -5,6 +5,7 @@ import { useNotification } from '../context/NotificationContext';
 import Modal from '../components/Modal';
 import { Plus, Search, Filter, Edit3, Trash2, FolderKanban, ShieldAlert } from 'lucide-react';
 import { formatCurrency, formatDate } from '../utils/formatters';
+import { useCurrency } from '../context/CurrencyContext';
 
 const subCategoryMap = {
   Asset: ['Cash', 'Bank', 'Accounts Receivable', 'Inventory', 'Equipment', 'Property', 'Vehicles', 'Other Assets'],
@@ -15,6 +16,7 @@ const subCategoryMap = {
 };
 
 const Accounts = () => {
+  const { currencySymbol, formatCurrency: formatCurr } = useCurrency();
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState('');
@@ -346,7 +348,7 @@ const Accounts = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-slate-300 font-semibold mb-1">Opening Balance ($)</label>
+              <label className="block text-slate-300 font-semibold mb-1">Opening Balance ({currencySymbol})</label>
               <input
                 type="number"
                 step="0.01"

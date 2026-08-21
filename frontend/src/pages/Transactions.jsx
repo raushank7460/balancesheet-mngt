@@ -5,8 +5,10 @@ import { useNotification } from '../context/NotificationContext';
 import Modal from '../components/Modal';
 import { Plus, Search, Filter, Trash2, ArrowRightLeft, AlertCircle, CheckCircle2, PlusCircle } from 'lucide-react';
 import { formatCurrency, formatDate, formatDateForInput } from '../utils/formatters';
+import { useCurrency } from '../context/CurrencyContext';
 
 const Transactions = () => {
+  const { currencySymbol, formatCurrency: formatCurr } = useCurrency();
   const [transactions, setTransactions] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -103,7 +105,7 @@ const Transactions = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isBalanced) {
-      addToast(`Imbalanced transaction! Total Debit ($${totalDebit}) must equal Total Credit ($${totalCredit})`, 'error', 'Accounting Error');
+      addToast(`Imbalanced transaction! Total Debit (${currencySymbol}${totalDebit}) must equal Total Credit (${currencySymbol}${totalCredit})`, 'error', 'Accounting Error');
       return;
     }
 
@@ -263,8 +265,8 @@ const Transactions = () => {
                     <thead>
                       <tr className="bg-slate-800/40 text-slate-400 font-semibold border-b border-slate-800/60">
                         <th className="py-2 px-3">Account</th>
-                        <th className="py-2 px-3 text-right">Debit ($)</th>
-                        <th className="py-2 px-3 text-right">Credit ($)</th>
+                        <th className="py-2 px-3 text-right">Debit ({currencySymbol})</th>
+                        <th className="py-2 px-3 text-right">Credit ({currencySymbol})</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800/40">
@@ -298,40 +300,42 @@ const Transactions = () => {
         maxWidth="max-w-3xl"
       >
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-slate-300 font-semibold mb-1">Transaction Date *</label>
+              <label className="block text-slate-300 font-semibold mb-1">Date *</label>
               <input
                 type="date"
                 required
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-100 focus:outline-none focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-100"
               />
             </div>
+
             <div>
-              <label className="block text-slate-300 font-semibold mb-1">Transaction Type *</label>
+              <label className="block text-slate-300 font-semibold mb-1">Transaction Type</label>
               <select
                 value={transactionType}
                 onChange={(e) => setTransactionType(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-100 focus:outline-none focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-100"
               >
-                <option value="Journal">Journal Entry</option>
+                <option value="Journal">General Journal</option>
                 <option value="Income">Income</option>
                 <option value="Expense">Expense</option>
-                <option value="Asset">Asset Purchase</option>
-                <option value="Liability">Liability Loan</option>
-                <option value="Transfer">Bank Transfer</option>
+                <option value="Asset">Asset Purchase / Transfer</option>
+                <option value="Liability">Liability / Loan Entry</option>
+                <option value="Equity">Equity / Capital Entry</option>
               </select>
             </div>
+
             <div>
               <label className="block text-slate-300 font-semibold mb-1">Reference / Invoice #</label>
               <input
                 type="text"
+                placeholder="INV-001 or REF-123"
                 value={reference}
                 onChange={(e) => setReference(e.target.value)}
-                placeholder="e.g. INV-2026-09"
-                className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-100 focus:outline-none focus:border-indigo-500"
+                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-100"
               />
             </div>
           </div>
@@ -341,37 +345,39 @@ const Transactions = () => {
             <input
               type="text"
               required
+              placeholder="e.g., Client Retainer Payment or Office Supplies purchase"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="e.g. Office supplies purchase via bank transfer"
-              className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-slate-100 focus:outline-none focus:border-indigo-500"
+              className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-100"
             />
           </div>
 
-          {/* Double-Entry Lines */}
-          <div className="pt-3 border-t border-slate-800">
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="font-semibold text-slate-200">Double-Entry Journal Lines</h4>
+          {/* Double-Entry Split Rows */}
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center justify-between">
+              <label className="text-slate-300 font-semibold flex items-center gap-1.5">
+                <ArrowRightLeft className="w-3.5 h-3.5 text-indigo-400" /> Journal Entries Breakdown
+              </label>
               <button
                 type="button"
                 onClick={addEntryRow}
-                className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1 font-semibold"
+                className="text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1"
               >
-                <PlusCircle className="w-3.5 h-3.5" /> Add Line
+                <PlusCircle className="w-3.5 h-3.5" /> Add Entry Line
               </button>
             </div>
 
             <div className="space-y-2">
               {entries.map((entry, idx) => (
-                <div key={idx} className="flex flex-col sm:flex-row items-center gap-2 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                <div key={idx} className="flex flex-col sm:flex-row items-center gap-2 p-2.5 rounded-xl bg-slate-950/80 border border-slate-800">
                   <div className="flex-1 w-full">
                     <select
                       required
                       value={entry.account}
                       onChange={(e) => handleEntryChange(idx, 'account', e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-100"
+                      className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200"
                     >
-                      <option value="">Select Account</option>
+                      <option value="">Select Account...</option>
                       {accounts.map((acc) => (
                         <option key={acc._id} value={acc._id}>
                           [{acc.accountType}] {acc.accountCode} - {acc.accountName}
@@ -384,7 +390,7 @@ const Transactions = () => {
                     <input
                       type="number"
                       step="0.01"
-                      placeholder="Debit ($)"
+                      placeholder={`Debit (${currencySymbol})`}
                       value={entry.debit}
                       onChange={(e) => handleEntryChange(idx, 'debit', e.target.value)}
                       className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-emerald-400 font-mono text-right"
@@ -395,7 +401,7 @@ const Transactions = () => {
                     <input
                       type="number"
                       step="0.01"
-                      placeholder="Credit ($)"
+                      placeholder={`Credit (${currencySymbol})`}
                       value={entry.credit}
                       onChange={(e) => handleEntryChange(idx, 'credit', e.target.value)}
                       className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-indigo-400 font-mono text-right"

@@ -5,10 +5,12 @@ import { useNotification } from '../context/NotificationContext';
 import Modal from '../components/Modal';
 import { Plus, Search, Filter, Trash2, Edit3, TrendingDown } from 'lucide-react';
 import { formatCurrency, formatDate, formatDateForInput } from '../utils/formatters';
+import { useCurrency } from '../context/CurrencyContext';
 
 const categoryList = ['Salaries', 'Rent', 'Electricity', 'Internet', 'Transportation', 'Office Expenses', 'Other Expenses'];
 
 const Expenses = () => {
+  const { currencySymbol, formatCurrency: formatCurr } = useCurrency();
   const [expenseRecords, setExpenseRecords] = useState([]);
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -194,7 +196,7 @@ const Expenses = () => {
                 <th className="py-3.5 px-4">Description</th>
                 <th className="py-3.5 px-4">Payment Method</th>
                 <th className="py-3.5 px-4">Notes</th>
-                <th className="py-3.5 px-4 text-right">Amount ($)</th>
+                <th className="py-3.5 px-4 text-right">Amount ({currencySymbol})</th>
                 {hasRole('Admin', 'Accountant') && <th className="py-3.5 px-4 text-center">Actions</th>}
               </tr>
             </thead>
@@ -225,7 +227,7 @@ const Expenses = () => {
                     </td>
                     <td className="py-3 px-4 text-slate-400">{exp.notes || '-'}</td>
                     <td className="py-3 px-4 text-right font-mono font-bold text-rose-400">
-                      {formatCurrency(exp.amount)}
+                      {formatCurr(exp.amount)}
                     </td>
 
                     {hasRole('Admin', 'Accountant') && (
@@ -280,7 +282,7 @@ const Expenses = () => {
             </div>
 
             <div>
-              <label className="block text-slate-300 font-semibold mb-1">Amount ($) *</label>
+              <label className="block text-slate-300 font-semibold mb-1">Amount ({currencySymbol}) *</label>
               <input
                 type="number"
                 step="0.01"

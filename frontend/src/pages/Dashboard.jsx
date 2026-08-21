@@ -29,8 +29,10 @@ import {
   Area,
 } from 'recharts';
 import { formatCurrency } from '../utils/formatters';
+import { useCurrency } from '../context/CurrencyContext';
 
 const Dashboard = () => {
+  const { currencySymbol, formatCurrency: formatCurr } = useCurrency();
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -163,10 +165,10 @@ const Dashboard = () => {
               <BarChart data={charts.incomeVsExpense}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                 <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} />
-                <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={(val) => `$${val}`} />
+                <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={(val) => `${currencySymbol}${val}`} />
                 <Tooltip
                   contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px' }}
-                  formatter={(val) => [formatCurrency(val), 'Amount']}
+                  formatter={(val) => [formatCurr(val), 'Amount']}
                 />
                 <Bar dataKey="amount" radius={[8, 8, 0, 0]}>
                   {charts.incomeVsExpense.map((entry, index) => (
@@ -178,10 +180,10 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Assets vs Liabilities Breakdown Pie Chart */}
+        {/* Assets vs Liabilities Pie Chart */}
         <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl">
           <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-            <Scale className="w-4 h-4 text-purple-400" /> Capital Structure (Assets vs Liabilities vs Equity)
+            <Scale className="w-4 h-4 text-emerald-400" /> Capital Structure Breakdown
           </h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -191,7 +193,7 @@ const Dashboard = () => {
                   cx="50%"
                   cy="50%"
                   innerRadius={60}
-                  outerRadius={90}
+                  outerRadius={85}
                   paddingAngle={5}
                   dataKey="amount"
                   label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
@@ -202,7 +204,7 @@ const Dashboard = () => {
                 </Pie>
                 <Tooltip
                   contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px' }}
-                  formatter={(val) => [formatCurrency(val), 'Value']}
+                  formatter={(val) => [formatCurr(val), 'Value']}
                 />
               </RechartsPie>
             </ResponsiveContainer>
@@ -230,10 +232,10 @@ const Dashboard = () => {
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
               <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} />
-              <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={(val) => `$${val}`} />
+              <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={(val) => `${currencySymbol}${val}`} />
               <Tooltip
                 contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px' }}
-                formatter={(val) => [formatCurrency(val)]}
+                formatter={(val) => [formatCurr(val)]}
               />
               <Legend />
               <Area type="monotone" dataKey="income" name="Monthly Income" stroke="#10b981" fillOpacity={1} fill="url(#incomeGrad)" />

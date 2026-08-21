@@ -12,10 +12,23 @@ const baseURL = rawBaseURL.startsWith('http') ? `${rawBaseURL}/api` : '/api';
 
 const api = axios.create({
   baseURL,
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
+// Pre-warm / wake up backend on initial load (Render cold start)
+export const wakeBackend = () => {
+  api.get('/health', { timeout: 15000 }).catch(() => {
+    // Ignore error on silent wake ping
+  });
+};
+
+// Immediate ping when script loads
+if (typeof window !== 'undefined') {
+  wakeBackend();
+}
 
 // Request interceptor to attach JWT token
 api.interceptors.request.use(

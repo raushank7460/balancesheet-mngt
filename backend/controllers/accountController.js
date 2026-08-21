@@ -7,7 +7,6 @@ const { recalculateAccountBalances } = require('../services/accountingService');
 // @access  Private
 const getAccounts = async (req, res, next) => {
   try {
-    await recalculateAccountBalances();
     const { accountType, status, search } = req.query;
 
     let query = {};

@@ -8,6 +8,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [wakeNotice, setWakeNotice] = useState(false);
 
   const { login } = useAuth();
   const { addToast } = useNotification();
@@ -16,15 +17,26 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setWakeNotice(false);
+
+    // If request takes >3s, show server waking notice
+    const timer = setTimeout(() => {
+      setWakeNotice(true);
+    }, 3000);
+
     try {
       await login(email, password);
+      clearTimeout(timer);
       addToast('Welcome back! Successfully logged in.', 'success', 'Authenticated');
       navigate('/dashboard');
     } catch (error) {
-      const msg = error.response?.data?.message || 'Failed to login. Please check credentials.';
+      clearTimeout(timer);
+      const msg = error.response?.data?.message || 'Failed to login. Please check credentials or server connection.';
       addToast(msg, 'error', 'Login Error');
     } finally {
+      clearTimeout(timer);
       setLoading(false);
+      setWakeNotice(false);
     }
   };
 
@@ -86,6 +98,12 @@ const Login = () => {
           >
             {loading ? 'Authenticating...' : 'Sign In'} <ArrowRight className="w-4 h-4" />
           </button>
+
+          {wakeNotice && (
+            <div className="p-3 rounded-xl bg-indigo-950/60 border border-indigo-500/40 text-indigo-300 text-xs text-center animate-pulse">
+              Connecting to secure cloud server... Please wait a few seconds while the instance initializes.
+            </div>
+          )}
         </form>
 
         {/* Demo Quick Logins */}

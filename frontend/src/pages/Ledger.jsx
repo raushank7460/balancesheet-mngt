@@ -3,9 +3,11 @@ import api from '../services/api';
 import { useNotification } from '../context/NotificationContext';
 import { exportToPDF, exportToExcel } from '../utils/exportUtils';
 import { formatCurrency, formatDate } from '../utils/formatters';
+import { useCurrency } from '../context/CurrencyContext';
 import { BookOpen, Printer, FileText, Download, Calendar, Search, RefreshCw } from 'lucide-react';
 
 const Ledger = () => {
+  const { currencySymbol, formatCurrency: formatCurr } = useCurrency();
   const [accounts, setAccounts] = useState([]);
   const [selectedAccountId, setSelectedAccountId] = useState('');
   const [ledgerData, setLedgerData] = useState(null);
@@ -57,14 +59,14 @@ const Ledger = () => {
 
   const handleExportPDF = () => {
     if (!ledgerData) return;
-    const headers = ['Date', 'Transaction ID', 'Description', 'Debit ($)', 'Credit ($)', 'Running Balance ($)'];
+    const headers = ['Date', 'Transaction ID', 'Description', `Debit (${currencySymbol})`, `Credit (${currencySymbol})`, `Running Balance (${currencySymbol})`];
     const rows = ledgerData.ledgerEntries.map(e => [
       formatDate(e.date),
       e.transactionId,
       e.description,
-      e.debit > 0 ? formatCurrency(e.debit) : '-',
-      e.credit > 0 ? formatCurrency(e.credit) : '-',
-      formatCurrency(e.balance),
+      e.debit > 0 ? formatCurr(e.debit) : '-',
+      e.credit > 0 ? formatCurr(e.credit) : '-',
+      formatCurr(e.balance),
     ]);
 
     exportToPDF(`Account Ledger - ${ledgerData.account.accountName}`, headers, rows, 'Account_Ledger');
@@ -201,9 +203,9 @@ const Ledger = () => {
                   <th className="py-3 px-4">Date</th>
                   <th className="py-3 px-4">Txn ID</th>
                   <th className="py-3 px-4">Description</th>
-                  <th className="py-3 px-4 text-right">Debit ($)</th>
-                  <th className="py-3 px-4 text-right">Credit ($)</th>
-                  <th className="py-3 px-4 text-right">Running Balance ($)</th>
+                  <th className="py-3 px-4 text-right">Debit ({currencySymbol})</th>
+                  <th className="py-3 px-4 text-right">Credit ({currencySymbol})</th>
+                  <th className="py-3 px-4 text-right">Running Balance ({currencySymbol})</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-slate-200">

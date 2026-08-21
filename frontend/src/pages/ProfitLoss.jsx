@@ -3,6 +3,7 @@ import api from '../services/api';
 import { useNotification } from '../context/NotificationContext';
 import { exportToPDF, exportToExcel } from '../utils/exportUtils';
 import { formatCurrency } from '../utils/formatters';
+import { useCurrency } from '../context/CurrencyContext';
 import {
   PieChart,
   Printer,
@@ -16,6 +17,7 @@ import {
 } from 'lucide-react';
 
 const ProfitLoss = () => {
+  const { currencySymbol, formatCurrency: formatCurr } = useCurrency();
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState('');
@@ -46,17 +48,17 @@ const ProfitLoss = () => {
 
   const handleExportPDF = () => {
     if (!report) return;
-    const headers = ['Category / Account', 'Amount ($)'];
+    const headers = ['Category / Account', `Amount (${currencySymbol})`];
     const rows = [
       ['--- REVENUE ---', ''],
-      ...report.revenueBreakdown.map(r => [`  ${r.name} (${r.code})`, formatCurrency(r.amount)]),
-      ['TOTAL REVENUE', formatCurrency(report.totalRevenue)],
+      ...report.revenueBreakdown.map(r => [`  ${r.name} (${r.code})`, formatCurr(r.amount)]),
+      ['TOTAL REVENUE', formatCurr(report.totalRevenue)],
       ['', ''],
       ['--- OPERATING EXPENSES ---', ''],
-      ...report.expenseBreakdown.map(e => [`  ${e.name} (${e.code})`, formatCurrency(e.amount)]),
-      ['TOTAL EXPENSES', formatCurrency(report.totalExpenses)],
+      ...report.expenseBreakdown.map(e => [`  ${e.name} (${e.code})`, formatCurr(e.amount)]),
+      ['TOTAL EXPENSES', formatCurr(report.totalExpenses)],
       ['', ''],
-      [report.isProfit ? 'NET PROFIT' : 'NET LOSS', formatCurrency(report.netProfit)],
+      [report.isProfit ? 'NET PROFIT' : 'NET LOSS', formatCurr(report.netProfit)],
     ];
 
     exportToPDF('Profit and Loss Statement', headers, rows, 'Profit_Loss_Statement');

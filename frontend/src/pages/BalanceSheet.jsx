@@ -3,6 +3,7 @@ import api from '../services/api';
 import { useNotification } from '../context/NotificationContext';
 import { exportToPDF, exportToExcel } from '../utils/exportUtils';
 import { formatCurrency } from '../utils/formatters';
+import { useCurrency } from '../context/CurrencyContext';
 import {
   Scale,
   Calendar,
@@ -18,6 +19,7 @@ import {
 } from 'lucide-react';
 
 const BalanceSheet = () => {
+  const { currencySymbol, formatCurrency: formatCurr } = useCurrency();
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -68,28 +70,28 @@ const BalanceSheet = () => {
   const handleExportPDF = () => {
     if (!report) return;
 
-    const headers = ['Category / Account', 'Amount ($)'];
+    const headers = ['Category / Account', `Amount (${currencySymbol})`];
     const rows = [
       ['--- ASSETS ---', ''],
-      ...report.assets.currentAssets.map(a => [`  ${a.name} (${a.code})`, formatCurrency(a.balance)]),
-      ['Total Current Assets', formatCurrency(report.assets.totalCurrentAssets)],
-      ...report.assets.fixedAssets.map(a => [`  ${a.name} (${a.code})`, formatCurrency(a.balance)]),
-      ['Total Fixed Assets', formatCurrency(report.assets.totalFixedAssets)],
-      ...report.assets.otherAssets.map(a => [`  ${a.name} (${a.code})`, formatCurrency(a.balance)]),
-      ['TOTAL ASSETS', formatCurrency(report.assets.totalAssets)],
+      ...report.assets.currentAssets.map(a => [`  ${a.name} (${a.code})`, formatCurr(a.balance)]),
+      ['Total Current Assets', formatCurr(report.assets.totalCurrentAssets)],
+      ...report.assets.fixedAssets.map(a => [`  ${a.name} (${a.code})`, formatCurr(a.balance)]),
+      ['Total Fixed Assets', formatCurr(report.assets.totalFixedAssets)],
+      ...report.assets.otherAssets.map(a => [`  ${a.name} (${a.code})`, formatCurr(a.balance)]),
+      ['TOTAL ASSETS', formatCurr(report.assets.totalAssets)],
       ['', ''],
       ['--- LIABILITIES ---', ''],
-      ...report.liabilities.currentLiabilities.map(l => [`  ${l.name} (${l.code})`, formatCurrency(l.balance)]),
-      ['Total Current Liabilities', formatCurrency(report.liabilities.totalCurrentLiabilities)],
-      ...report.liabilities.longTermLiabilities.map(l => [`  ${l.name} (${l.code})`, formatCurrency(l.balance)]),
-      ['TOTAL LIABILITIES', formatCurrency(report.liabilities.totalLiabilities)],
+      ...report.liabilities.currentLiabilities.map(l => [`  ${l.name} (${l.code})`, formatCurr(l.balance)]),
+      ['Total Current Liabilities', formatCurr(report.liabilities.totalCurrentLiabilities)],
+      ...report.liabilities.longTermLiabilities.map(l => [`  ${l.name} (${l.code})`, formatCurr(l.balance)]),
+      ['TOTAL LIABILITIES', formatCurr(report.liabilities.totalLiabilities)],
       ['', ''],
       ['--- EQUITY ---', ''],
-      ...report.equity.items.map(e => [`  ${e.name} (${e.code})`, formatCurrency(e.balance)]),
-      ['Current Profit / Loss', formatCurrency(report.equity.currentProfitLoss)],
-      ['TOTAL EQUITY', formatCurrency(report.equity.totalEquity)],
+      ...report.equity.items.map(e => [`  ${e.name} (${e.code})`, formatCurr(e.balance)]),
+      ['Current Profit / Loss', formatCurr(report.equity.currentProfitLoss)],
+      ['TOTAL EQUITY', formatCurr(report.equity.totalEquity)],
       ['', ''],
-      ['TOTAL LIABILITIES & EQUITY', formatCurrency(report.totalLiabilitiesAndEquity)],
+      ['TOTAL LIABILITIES & EQUITY', formatCurr(report.totalLiabilitiesAndEquity)],
     ];
 
     exportToPDF(`Balance Sheet Statement (${financialYear})`, headers, rows, 'Balance_Sheet_Report');
@@ -218,7 +220,7 @@ const BalanceSheet = () => {
           </div>
 
           <div className="font-mono text-sm">
-            ${report.assets.totalAssets} = ${report.totalLiabilitiesAndEquity}
+            {currencySymbol}{report.assets.totalAssets} = {currencySymbol}{report.totalLiabilitiesAndEquity}
           </div>
         </div>
       )}
