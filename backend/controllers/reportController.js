@@ -11,8 +11,13 @@ const Account = require('../models/Account');
 // @desc    Get dashboard metrics & chart data
 // @route   GET /api/reports/dashboard
 // @access  Private
+let mp = new Map();
 const getDashboardMetrics = async (req, res, next) => {
   try {
+    if (mp.has('dashboard')) {
+      return res.send(mp.get('dashboard'));
+    }
+
     await recalculateAccountBalances();
 
     const bs = await getBalanceSheetData();
@@ -49,8 +54,7 @@ const getDashboardMetrics = async (req, res, next) => {
       ...m,
       net: m.income - m.expense,
     }));
-
-    res.json({
+    let response = {
       success: true,
       data: {
         summary: {
@@ -78,7 +82,11 @@ const getDashboardMetrics = async (req, res, next) => {
           monthlyTrends,
         },
       },
-    });
+    }
+
+    mp.set('dashboard', response);
+
+    res.json(response);
   } catch (error) {
     next(error);
   }
