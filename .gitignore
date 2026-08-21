@@ -1,6 +1,9 @@
 node_modules/
 .env
 .env.local
+!frontend/.env.production
+!frontend/.env.example
+!backend/.env.example
 dist/
 dist-ssr/
 *.local
